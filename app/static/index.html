@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EBCBD1">
+<title>Tétinette</title>
+<link rel="icon" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Grandstander:wght@600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EBCBD1;--cream:#F4EBDD;--sage:#A8BBA9;--sagedk:#46604A;--taupe:#8B7778;--white:#fff;--wine:#A5646B;--ink:#5A4547;--pink:#E8A0AB;--line:#E0D2C0}
+*{box-sizing:border-box;margin:0}
+body{font:16px/1.45 Nunito,system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:env(safe-area-inset-top) 0 96px}
+h1,h2,.big{font-family:Grandstander,"Trebuchet MS",sans-serif}
+main{max-width:520px;margin:0 auto;padding:12px 16px}
+button{font:inherit;border:0;cursor:pointer;color:inherit}
+.top{display:flex;align-items:center;gap:12px;padding:4px 2px 10px}
+.top img{width:52px;height:52px;border-radius:14px}
+.top h1{font-size:26px;font-weight:800;color:var(--wine);flex:1;line-height:1}
+.icon{background:var(--cream);width:42px;height:42px;border-radius:50%;font-size:18px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;scrollbar-width:none}
+.chip{background:#ffffff80;padding:8px 16px;border-radius:99px;font-weight:700;white-space:nowrap;flex:none}
+.chip small{display:block;font-weight:600;font-size:12px;color:var(--taupe);line-height:1.1}
+.chip.on{background:var(--wine);color:#fff}.chip.on small{color:#F4EBDD}
+.card{background:var(--cream);border-radius:24px;padding:18px;margin-bottom:14px;box-shadow:0 4px 18px #8b777822}
+.last .big{font-size:30px;font-weight:800;line-height:1.15;margin:2px 0;color:var(--wine)}
+.last small,.soft{color:var(--taupe)}
+.next{margin-top:10px;padding:8px 14px;border-radius:14px;font-weight:700;display:inline-block}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.feed{border-radius:24px;padding:20px 10px;font-weight:700;font-size:18px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.feed span{font-size:30px;font-family:Grandstander}
+.feed:active{transform:scale(.97)}
+.L{background:var(--sage);color:var(--sagedk)}.R{background:var(--pink);color:#7A3340}.B{background:var(--taupe);color:#fff}
+.wide{grid-column:1/3;flex-direction:row;justify-content:center;gap:10px;padding:16px}
+.wide span{font-size:24px}
+.manual{width:100%;display:flex;align-items:center;gap:14px;text-align:left;background:var(--white);border-radius:22px;padding:14px 16px;margin-bottom:6px;box-shadow:0 4px 18px #8b777822}
+.manual svg{flex:none;width:46px;height:46px}
+.manual b{display:block}.manual small{color:var(--taupe);line-height:1.3;display:block}
+.row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}
+.dot{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-weight:800;flex:none;font-family:Grandstander}
+.row .t{flex:1}.row .t b{display:block}.row .t small{color:var(--taupe)}
+.x{background:none;color:var(--taupe);font-size:22px;padding:6px}
+.day{font-family:Grandstander,"Trebuchet MS",system-ui,sans-serif;font-size:18px;font-weight:600;margin:16px 4px 8px;display:flex;justify-content:space-between;align-items:baseline;color:var(--ink)}
+.day small{font:600 14px Nunito,system-ui,sans-serif;color:var(--taupe)}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--cream);display:flex;justify-content:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px #8b777822;border-radius:24px 24px 0 0;z-index:3}
+nav div{display:flex;max-width:520px;width:100%;gap:4px}
+nav button{flex:1;background:none;padding:6px 2px;border-radius:16px;font-weight:700;color:var(--taupe);font-size:13px}
+nav button b{display:block;font-size:22px;font-weight:400}
+nav button.on{background:var(--bg);color:var(--wine)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;background:#ffffff66;padding:4px;border-radius:16px;margin-bottom:12px}
+.seg button{padding:9px 4px;border-radius:12px;font-weight:700;color:var(--ink);background:none}
+.seg button.on{background:var(--wine);color:#fff}
+.sheet .seg{background:#e9dccb}
+.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.nav button{background:var(--cream);width:42px;height:42px;border-radius:50%;font-size:20px}
+.nav button:disabled{opacity:.35}
+.nav b{font-family:Grandstander,"Trebuchet MS",system-ui,sans-serif;font-size:19px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--cream);border-radius:18px;padding:12px 8px;text-align:center}
+.stat .big{font-size:21px;font-weight:800;color:var(--wine);line-height:1.2}.stat small{color:var(--taupe);font-size:12px;line-height:1.2;display:block}
+.chart{background:#ffffff4d;border-radius:24px;padding:14px 8px 8px;margin-bottom:12px}
+.scroll{overflow-x:auto;scrollbar-width:thin}
+.bars{display:flex;align-items:flex-end;gap:4px;width:max-content;min-width:100%}
+.col{background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:190px;border-radius:12px;padding:4px 0;width:var(--w,40px);flex:none;font-size:11px;color:var(--taupe);line-height:1.15}
+.col.on{background:#ffffffa6}
+.col em{font-style:normal;font-weight:800;color:var(--ink);font-size:12px;min-height:16px}
+.stack{display:flex;flex-direction:column-reverse;width:60%;max-width:26px;border-radius:8px 8px 3px 3px;overflow:hidden;margin:2px 0 4px}
+.stack i{display:block}
+.legend{display:flex;gap:14px;justify-content:center;font-size:13px;color:var(--taupe);padding:6px 0}
+.legend b{display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:5px;vertical-align:-1px}
+.wchart{border:2px solid #ffffff80;border-radius:24px;padding:10px 6px 6px;margin-bottom:12px}
+.wchart svg{width:100%;height:auto;display:block}
+.wchart .cap{text-align:center;font-weight:700;padding:4px 0 6px}
+input{font:inherit;width:100%;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:#fff;color:var(--ink)}
+input:focus,button:focus-visible{outline:3px solid var(--wine);outline-offset:2px}
+label{display:block;font-weight:700;margin:12px 0 6px;font-size:14px;color:var(--taupe)}
+.go{width:100%;margin-top:16px;padding:15px;border-radius:18px;background:var(--wine);color:#fff;font-weight:700;font-size:17px}
+.link{background:none;color:var(--taupe);text-decoration:underline;display:block;margin:10px auto 0;font-weight:600}
+.danger{color:#9B3B3B}
+.sheet{position:fixed;inset:0;background:#5a454766;display:none;align-items:flex-end;justify-content:center;z-index:5}
+.sheet.open{display:flex}
+.sheet>div{background:var(--cream);width:100%;max-width:520px;border-radius:28px 28px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+.sheet h2{margin-bottom:4px;color:var(--wine)}
+.welcome{text-align:center}.welcome img{width:130px;border-radius:30px;margin-bottom:8px}.welcome p{color:var(--taupe)}
+#toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:18px;display:none;gap:14px;align-items:center;z-index:9;white-space:nowrap}
+#toast button{background:none;color:var(--bg);text-decoration:underline;font-weight:700}
+.empty{color:var(--taupe);text-align:center;padding:16px 0}
+@media (prefers-reduced-motion:no-preference){.feed,.go{transition:transform .12s}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav><div id="tabs"></div></nav>
+<div class="sheet" id="sheet"><div id="sheetbody"></div></div>
+<div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s);
+const MOIS=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+const MOISL=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const iso=d=>`${ymd(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const addD=(k,n)=>{const d=new Date(k+'T12:00');d.setDate(d.getDate()+n);return ymd(d)};
+const today=()=>ymd(new Date());
+const dayKey=ts=>ts.slice(0,10), hhmm=ts=>ts.slice(11,16).replace(':','h');
+const fmtD=k=>{const d=new Date(k+'T12:00');return`${d.getDate()} ${MOIS[d.getMonth()]}`};
+const fmtDY=k=>`${fmtD(k)} ${k.slice(0,4)}`;
+const sideName=s=>s==='L'?'Sein gauche':'Sein droit';
+function dayLabel(k){if(k===today())return"Aujourd’hui";if(k===addD(today(),-1))return"Hier";
+ return new Date(k+'T12:00').toLocaleDateString('fr-FR',{weekday:'long'})+' '+fmtD(k)}
+function ago(ts){const m=Math.max(0,Math.round((Date.now()-new Date(ts))/6e4));if(m<2)return"à l’instant";if(m<60)return`il y a ${m} min`;
+ const h=Math.floor(m/60),r=m%60;return`il y a ${h} h${r?pad(r):''}`}
+function dur(ms){const m=Math.round(ms/6e4);return m<60?`${m} min`:`${Math.floor(m/60)} h ${pad(m%60)}`}
+function ageStr(b){if(!b)return'';const d=Math.floor((Date.now()-new Date(b+'T12:00'))/864e5);if(d<0)return'';
+ return d<14?`${d} jour${d>1?'s':''}`:d<84?`${Math.floor(d/7)} semaines`:`${Math.floor(d/30.4375)} mois`}
+function gaps(es){const s=[...es].sort((a,b)=>a.ts<b.ts?-1:1),g=[];
+ for(let i=1;i<s.length;i++){const d=new Date(s[i].ts)-new Date(s[i-1].ts);if(d<12*36e5)g.push(d)}return g}
+const avg=a=>a.length?a.reduce((x,y)=>x+y)/a.length:0;
+const sum=(es,f)=>es.reduce((a,e)=>a+f(e),0);
+
+let S={babies:[],events:[],weights:[]},tab='home',sheetKind='L',milk='maternel',B=null;
+let Rt={mode:'day',date:today(),metric:'feeds',sel:null,scroll:null},Wt={mode:'date',sel:null};
+const baby=()=>S.babies.find(b=>b.id===B);
+const ev=()=>S.events.filter(e=>e.baby_id===B);
+const wt=()=>S.weights.filter(w=>w.baby_id===B);
+async function load(){S=await (await fetch('/api/data')).json();
+ let s=null;try{s=+localStorage.getItem('baby')}catch(e){}
+ B=S.babies.some(b=>b.id===s)?s:(S.babies[0]?.id??null);render();
+ if(!S.babies.length)babySheet(null,true)}
+async function api(m,u,b){const r=await fetch(u,{method:m,headers:{'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined});return r.json()}
+function pick(id){B=id;try{localStorage.setItem('baby',id)}catch(e){}Rt.sel=null;Rt.scroll=null;Wt.sel=null;render()}
+
+const IC={L:'G',R:'D',B:'🍼'};
+const kindOf=e=>e.kind==='bottle'?'B':e.side;
+function evRow(e){const k=kindOf(e);
+ const title=e.kind==='bottle'?`Biberon · ${e.ml} ml`:sideName(e.side);
+ const sub=e.kind==='bottle'?(e.milk==='maternel'?'Lait maternel':'Lait artificiel'):'';
+ return`<div class="row"><div class="dot ${k}">${IC[k]}</div><div class="t"><b>${title}</b><small>${hhmm(e.ts)}${sub?' · '+sub:''}</small></div><button class="x" aria-label="Supprimer" onclick="del(${e.id})">×</button></div>`}
+async function del(id){if(confirm('Supprimer cette entrée ?')){await api('DELETE','/api/events/'+id);load()}}
+async function delW(id){if(confirm('Supprimer cette pesée ?')){await api('DELETE','/api/weights/'+id);Wt.sel=null;load()}}
+function toast(msg,undoId){const t=$('#toast');t.innerHTML=`${msg}${undoId?'<button id="undo">Annuler</button>':''}`;t.style.display='flex';
+ if(undoId)$('#undo').onclick=async()=>{await api('DELETE','/api/events/'+undoId);t.style.display='none';load()};
+ clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',5000)}
+async function quick(side){await api('POST','/api/events',{ts:iso(new Date()),kind:'breast',side,baby_id:B});await load();
+ toast(`${sideName(side)} enregistré`,Math.max(...ev().map(e=>e.id)))}
+
+function header(){const b=baby();
+ return`<div class="top"><img src="/logo.png" alt=""><h1>Tétinette</h1>${b?`<button class="icon" aria-label="Modifier le profil" onclick="babySheet(${b.id})">✎</button>`:''}</div>
+ <div class="chips">${S.babies.map(x=>`<button class="chip ${x.id===B?'on':''}" onclick="pick(${x.id})">${x.name}${x.birth?`<small>${ageStr(x.birth)}</small>`:''}</button>`).join('')}<button class="chip" onclick="babySheet(null)">+ Ajouter</button></div>`}
+
+function home(){
+ const feeds=ev().filter(e=>e.kind==='breast'),last=feeds[0],td=today(),te=ev().filter(e=>dayKey(e.ts)===td);
+ const ml=sum(te.filter(e=>e.kind==='bottle'),e=>e.ml),n=baby()?.name||'';
+ let h='';
+ if(last){const nx=last.side==='L'?'R':'L';
+  h+=`<div class="card last"><small>Dernier sein donné à ${n}</small><div class="big">${sideName(last.side)}</div><small>${hhmm(last.ts)} · ${ago(last.ts)}</small><br><span class="next ${nx}">Prochain : ${sideName(nx).toLowerCase()}</span></div>`}
+ else h+=`<div class="card empty">Aucune tétée pour ${n}. Touchez un bouton pour commencer.</div>`;
+ h+=`<div class="btns"><button class="feed L" onclick="quick('L')"><span>G</span>Sein gauche</button><button class="feed R" onclick="quick('R')"><span>D</span>Sein droit</button>
+ <button class="feed B wide" onclick="openSheet('B')"><span>🍼</span>Ajouter un biberon</button></div>
+ <button class="manual" onclick="openSheet('L')"><svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="23" fill="#A8BBA9"/><circle cx="21" cy="23" r="11" fill="none" stroke="#fff" stroke-width="3"/><path d="M21 16v7l5 3" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="36" cy="35" r="8" fill="#A5646B"/><path d="M36 31v8M32 35h8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+ <span><b>Ajouter manuellement une prise</b><small>Une tétée ou un biberon oublié, à la date et l’heure de votre choix</small></span></button>
+ <div class="day">Aujourd’hui<small>${te.filter(e=>e.kind==='breast').length} tétées${ml?` · ${ml} ml biberon`:''}</small></div>
+ <div class="card">${te.length?te.map(evRow).join(''):'<div class="empty">Rien pour l’instant aujourd’hui.</div>'}</div>`;
+ return h}
+
+function history(){
+ const g={};ev().forEach(e=>(g[dayKey(e.ts)]??=[]).push(e));
+ let h='<h2 class="day" style="font-size:24px">Historique</h2>';
+ const keys=Object.keys(g);if(!keys.length)return h+'<div class="card empty">Pas encore d’entrées.</div>';
+ keys.forEach(k=>{const es=g[k],n=es.filter(e=>e.kind==='breast').length,ml=sum(es.filter(e=>e.kind==='bottle'),e=>e.ml);
+  h+=`<div class="day">${dayLabel(k)}<small>${n} tétées${ml?` · ${ml} ml`:''}</small></div><div class="card">${es.map(evRow).join('')}</div>`});
+ return h}
+
+/* ---------- Rythme ---------- */
+const COL={L:'#8FA891',R:'#E8A0AB',mat:'#C27C88',art:'#8B7778'};
+function stackHTML(parts,max,px){return`<div class="stack" style="height:${Math.max(parts.reduce((a,p)=>a+p[0],0)/max*px,0)}px">${parts.map(([v,c])=>v?`<i style="height:${v/max*px}px;background:${c}"></i>`:'').join('')}</div>`}
+function buckets(mode){const t=today(),out=[];
+ if(mode==='days')for(let i=29;i>=0;i--){const k=addD(t,-i);out.push({from:k,to:addD(k,1),top:new Date(k+'T12:00').toLocaleDateString('fr-FR',{weekday:'narrow'}),bot:+k.slice(8),title:dayLabel(k),key:k})}
+ if(mode==='weeks'){const d=new Date(t+'T12:00'),dow=(d.getDay()+6)%7,mon=addD(t,-dow);
+  for(let i=11;i>=0;i--){const f=addD(mon,-7*i);out.push({from:f,to:addD(f,7),top:'sem.',bot:fmtD(f).replace(' ','\u00a0'),title:`Semaine du ${fmtD(f)} au ${fmtD(addD(f,6))}`})}}
+ if(mode==='months'){const d=new Date();for(let i=11;i>=0;i--){const m=new Date(d.getFullYear(),d.getMonth()-i,1);
+  const f=ymd(m),nx=ymd(new Date(m.getFullYear(),m.getMonth()+1,1));out.push({from:f,to:nx,top:m.getMonth()===0||i===11?m.getFullYear():'',bot:MOIS[m.getMonth()],title:`${MOISL[m.getMonth()]} ${m.getFullYear()}`})}}
+ const all=ev();
+ out.forEach(b=>{b.es=all.filter(e=>{const k=dayKey(e.ts);return k>=b.from&&k<b.to});
+  const e1=addD(t,1),end=b.to<e1?b.to:e1;b.nd=Math.max(1,Math.round((new Date(end)-new Date(b.from))/864e5));
+  b.L=b.es.filter(e=>e.side==='L').length;b.R=b.es.filter(e=>e.side==='R').length;
+  b.mat=sum(b.es.filter(e=>e.milk==='maternel'),e=>e.ml);b.art=sum(b.es.filter(e=>e.milk==='artificiel'),e=>e.ml)});
+ return out}
+function summary(es,nd){const br=es.filter(e=>e.kind==='breast'),g=gaps(es);
+ const L=br.filter(e=>e.side==='L').length,R=br.length-L,mat=sum(es.filter(e=>e.milk==='maternel'),e=>e.ml),art=sum(es.filter(e=>e.milk==='artificiel'),e=>e.ml);
+ const c=(v,l)=>`<div class="stat"><div class="big">${v}</div><small>${l}</small></div>`;
+ return`<div class="stats">${c(br.length,`tétées (G ${L} · D ${R})`)}${c(mat+art+' ml',`biberons (mat. ${mat} · art. ${art})`)}${c(g.length?dur(avg(g)):'–','écart moyen entre prises')}
+ ${nd>1?c((br.length/nd).toFixed(1),'tétées par jour')+c(((mat+art)/nd).toFixed(0)+' ml','biberon par jour')+c(g.length?dur(Math.max(...g)):'–','plus longue pause'):c(es.length,'prises au total')+c(g.length?dur(Math.max(...g)):'–','plus longue pause')+c(es.length?hhmm(es.reduce((a,e)=>e.ts>a.ts?e:a).ts):'–','dernière prise')}</div>`}
+
+function rhythm(){
+ const modes=[['day','Jour'],['days','Jours'],['weeks','Semaines'],['months','Mois']];
+ let h=`<div class="seg">${modes.map(([k,l])=>`<button class="${Rt.mode===k?'on':''}" onclick="setMode('${k}')">${l}</button>`).join('')}</div>`;
+ if(Rt.mode==='day'){
+  const k=Rt.date,es=ev().filter(e=>dayKey(e.ts)===k).sort((a,b)=>a.ts<b.ts?-1:1);
+  const hrs=[...Array(24)].map((_,i)=>es.filter(e=>+e.ts.slice(11,13)===i));
+  const max=Math.max(2,...hrs.map(x=>x.length));
+  h+=`<div class="nav"><button aria-label="Jour précédent" onclick="Rt.date=addD(Rt.date,-1);Rt.sel=null;render()">‹</button><b>${dayLabel(k)}</b><button aria-label="Jour suivant" ${k>=today()?'disabled':''} onclick="Rt.date=addD(Rt.date,1);Rt.sel=null;render()">›</button></div>
+  <div class="chart"><div class="bars" style="gap:2px;width:100%">${hrs.map((x,i)=>{const L=x.filter(e=>e.side==='L').length,R=x.filter(e=>e.side==='R').length,Bn=x.filter(e=>e.kind==='bottle').length;
+   return`<button class="col ${Rt.sel===i?'on':''}" style="flex:1;width:auto;min-width:0" aria-label="${i} h : ${x.length} prises" onclick="Rt.sel=Rt.sel===${i}?null:${i};render()"><em style="font-size:11px">${x.length||''}</em>${stackHTML([[L,COL.L],[R,COL.R],[Bn,COL.art]],max,120)}<span>${i%3===0?i+'h':'·'}</span></button>`}).join('')}</div>
+  <div class="legend"><span><b style="background:${COL.L}"></b>Sein G</span><span><b style="background:${COL.R}"></b>Sein D</span><span><b style="background:${COL.art}"></b>Biberon</span></div></div>`;
+  const sel=Rt.sel!==null?hrs[Rt.sel]:es;
+  h+=Rt.sel!==null?`<div class="day">De ${Rt.sel} h à ${Rt.sel+1} h<small>touchez la barre pour revenir à la journée</small></div>`:`<div class="day">Résumé de la journée</div>${summary(es,1)}`;
+  h+=`<div class="card">${sel.length?sel.map(evRow).join(''):'<div class="empty">Aucune prise sur cette période.</div>'}</div>`;
+  return h}
+ const bs=buckets(Rt.mode),sel=Rt.sel??bs.length-1,b=bs[sel],feeds=Rt.metric==='feeds';
+ const vals=bs.map(x=>feeds?x.L+x.R:x.mat+x.art),max=Math.max(1,...vals);
+ h+=`<div class="seg"><button class="${feeds?'on':''}" onclick="Rt.metric='feeds';render()">Tétées</button><button class="${!feeds?'on':''}" onclick="Rt.metric='ml';render()">Biberons (ml)</button></div>
+ <div class="chart"><div class="scroll" id="sc"><div class="bars">${bs.map((x,i)=>`<button class="col ${i===sel?'on':''}" style="--w:${Rt.mode==='days'?38:52}px" onclick="Rt.sel=${i};render()" aria-label="${x.title}"><em>${vals[i]||''}</em>${stackHTML(feeds?[[x.L,COL.L],[x.R,COL.R]]:[[x.mat,COL.mat],[x.art,COL.art]],max,125)}<span>${x.top}</span><span>${x.bot}</span></button>`).join('')}</div></div>
+ <div class="legend">${feeds?`<span><b style="background:${COL.L}"></b>Sein G</span><span><b style="background:${COL.R}"></b>Sein D</span>`:`<span><b style="background:${COL.mat}"></b>Maternel</span><span><b style="background:${COL.art}"></b>Artificiel</span>`}</div></div>
+ <div class="day">${b.title}${Rt.mode==='days'?`<small><a href="#" onclick="Rt.mode='day';Rt.date='${b.key}';Rt.sel=null;render();return false" style="color:var(--wine);font-weight:700">Voir la journée ›</a></small>`:''}</div>${summary(b.es,b.nd)}`;
+ return h}
+function setMode(m){Rt.mode=m;Rt.sel=null;Rt.scroll=null;render()}
+
+/* ---------- Poids ---------- */
+const kg=g=>(g/1000).toFixed(1).replace('.',',');
+function wchart(w,bb,age){
+ const W=360,H=230,L=48,Rm=16,T=14,Bm=30,B0=bb?.birth?new Date(bb.birth+'T12:00'):null;
+ let pts=w.map(x=>({id:x.id,g:x.grams,d:x.day,x:age?(new Date(x.day+'T12:00')-B0)/864e5/30.4375:new Date(x.day+'T12:00').getTime()})).filter(p=>!age||p.x>=0);
+ if(!pts.length)return'<div class="empty">Aucune pesée'+(age?' depuis la naissance':'')+'.</div>';
+ const gs=pts.map(p=>p.g),xs=pts.map(p=>p.x);
+ let x0=age?0:Math.min(...xs),x1=age?Math.max(3,Math.ceil(Math.max(...xs))):Math.max(...xs);
+ if(!age&&x0===x1){x0-=3*864e5;x1+=3*864e5}
+ const step=(Math.max(...gs)-Math.min(...gs))>4000?1000:500,y0=Math.floor((Math.min(...gs)-150)/step)*step,y1=Math.ceil((Math.max(...gs)+150)/step)*step;
+ const sx=v=>L+(v-x0)/(x1-x0)*(W-L-Rm),sy=g=>T+(1-(g-y0)/(y1-y0))*(H-T-Bm);
+ let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Courbe de poids">`;
+ for(let g=y0;g<=y1;g+=step)s+=`<line x1="${L}" x2="${W-Rm}" y1="${sy(g)}" y2="${sy(g)}" stroke="#8B7778" stroke-opacity=".28" stroke-dasharray="3 4"/><text x="${L-6}" y="${sy(g)+4}" text-anchor="end" font-size="11" fill="#8B7778">${kg(g)} kg</text>`;
+ if(age){const st=x1<=12?1:x1<=24?2:3;for(let m=0;m<=x1;m+=st)s+=`<line x1="${sx(m)}" x2="${sx(m)}" y1="${T}" y2="${H-Bm}" stroke="#8B7778" stroke-opacity=".15"/><text x="${sx(m)}" y="${H-10}" text-anchor="middle" font-size="11" fill="#8B7778">${m===0?'naiss.':m+' m'}</text>`}
+ else for(let i=0;i<4;i++){const v=x0+(x1-x0)*i/3;s+=`<text x="${sx(v)}" y="${H-10}" text-anchor="${i===0?'start':i===3?'end':'middle'}" font-size="11" fill="#8B7778">${fmtD(ymd(new Date(v)))}</text>`}
+ const line=pts.map(p=>`${sx(p.x)},${sy(p.g)}`).join(' ');
+ s+=`<polygon points="${sx(pts[0].x)},${H-Bm} ${line} ${sx(pts.at(-1).x)},${H-Bm}" fill="#A8BBA9" fill-opacity=".35"/><polyline points="${line}" fill="none" stroke="#A5646B" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+ const cur=pts.find(p=>p.id===Wt.sel)||pts.at(-1);
+ pts.forEach(p=>s+=`<circle cx="${sx(p.x)}" cy="${sy(p.g)}" r="${p===cur?8:5.5}" fill="${p===cur?'#A5646B':'#F4EBDD'}" stroke="#A5646B" stroke-width="3" onclick="Wt.sel=${p.id};render()" style="cursor:pointer"/>`);
+ const ageTxt=B0?` · ${(()=>{const dd=Math.floor((new Date(cur.d+'T12:00')-B0)/864e5);return dd<14?dd+' j':dd<84?Math.floor(dd/7)+' sem.':Math.floor(dd/30.4375)+' mois'})()}`:'';
+ return s+`</svg><div class="cap">${cur.g} g · ${fmtDY(cur.d)}${ageTxt}</div>`}
+function weight(){
+ const w=wt(),bb=baby(),age=Wt.mode==='age'&&bb?.birth;
+ let h=`<h2 class="day" style="font-size:24px">Poids de ${bb?.name||'bébé'}</h2><div class="seg"><button class="${!age?'on':''}" onclick="Wt.mode='date';render()">Par date</button><button class="${age?'on':''}" onclick="${bb?.birth?"Wt.mode='age';render()":`babySheet(${B})`}">Par âge (mois)</button></div>`;
+ if(Wt.mode==='age'&&!bb?.birth)Wt.mode='date';
+ h+=`<div class="wchart">${wchart(w,bb,age)}</div>
+ <div class="card"><label style="margin-top:0">Date de la pesée</label><input type="date" id="wd" value="${today()}">
+ <label>Poids (en grammes)</label><input type="number" id="wg" inputmode="numeric" placeholder="ex. 3450">
+ <button class="go" onclick="addW()">Enregistrer le poids</button></div>
+ <div class="card">${w.length?[...w].reverse().map((x,i,a)=>{const p=a[i+1],d=p?x.grams-p.grams:null;
+  return`<div class="row"><div class="dot B">⚖</div><div class="t"><b>${x.grams} g</b><small>${fmtDY(x.day)}${d!==null?` · ${d>=0?'+':''}${d} g`:''}</small></div><button class="x" aria-label="Supprimer" onclick="delW(${x.id})">×</button></div>`}).join(''):'<div class="empty">Ajoutez la première pesée ci-dessus.</div>'}</div>`;
+ return h}
+async function addW(){const day=$('#wd').value,g=$('#wg').value;if(!day||!g)return toast('Indiquez la date et le poids');
+ await api('POST','/api/weights',{day,grams:g,baby_id:B});load()}
+
+/* ---------- Fenêtres ---------- */
+const sh=()=>$('#sheet');
+function closeSheet(){sh().classList.remove('open')}
+sh().onclick=e=>{if(e.target.id==='sheet'&&!sh().dataset.forced)closeSheet()};
+function openSheet(k){sheetKind=k;drawSheet();delete sh().dataset.forced;sh().classList.add('open')}
+function drawSheet(){const keep=$('#sdt')?.value||iso(new Date());
+ $('#sheetbody').innerHTML=`<h2>Ajouter une prise</h2><div class="soft">Pour ${baby()?.name||''}</div><label>Type</label>
+ <div class="seg"><button class="${sheetKind==='L'?'on':''}" onclick="sheetKind='L';drawSheet()">Sein G</button><button class="${sheetKind==='R'?'on':''}" onclick="sheetKind='R';drawSheet()">Sein D</button><button class="${sheetKind==='B'?'on':''}" onclick="sheetKind='B';drawSheet()">Biberon</button></div>
+ <label>Date et heure</label><input type="datetime-local" id="sdt" value="${keep}">
+ ${sheetKind==='B'?`<label>Lait</label><div class="seg"><button id="mm" class="${milk==='maternel'?'on':''}" onclick="pickMilk('maternel')">Maternel</button><button id="ma" class="${milk==='artificiel'?'on':''}" onclick="pickMilk('artificiel')">Artificiel</button></div>
+ <label>Quantité (ml)</label><input type="number" id="sml" inputmode="numeric" placeholder="ex. 90">`:''}
+ <button class="go" onclick="saveSheet()">Enregistrer</button><button class="link" onclick="closeSheet()">Fermer</button>`}
+function pickMilk(m){milk=m;$('#mm').classList.toggle('on',m==='maternel');$('#ma').classList.toggle('on',m==='artificiel')}
+async function saveSheet(){const ts=$('#sdt').value;if(!ts)return;
+ if(sheetKind==='B'){const ml=parseInt($('#sml').value);if(!ml)return toast('Indiquez la quantité en ml');
+  await api('POST','/api/events',{ts,kind:'bottle',milk,ml,baby_id:B})}
+ else await api('POST','/api/events',{ts,kind:'breast',side:sheetKind,baby_id:B});
+ closeSheet();load()}
+
+function babySheet(id,forced){const b=S.babies.find(x=>x.id===id);
+ $('#sheetbody').innerHTML=`${forced?'<div class="welcome"><img src="/logo.png" alt=""><h2>Bienvenue sur Tétinette</h2><p>Commençons par présenter votre bébé.</p></div>':`<h2>${b?'Profil de '+b.name:'Ajouter un bébé'}</h2>`}
+ <label>Prénom</label><input id="bn" value="${b?.name||''}" placeholder="Prénom de bébé">
+ <label>Date de naissance</label><input type="date" id="bd" value="${b?.birth||''}">
+ <div class="soft" style="font-size:13px;margin-top:6px">Elle permet de voir la courbe de poids par âge en mois.</div>
+ <button class="go" onclick="saveBaby(${b?b.id:'null'})">Enregistrer</button>
+ ${b?`<button class="link danger" onclick="delBaby(${b.id})">Supprimer ce bébé et ses données</button>`:''}
+ ${forced?'':'<button class="link" onclick="closeSheet()">Fermer</button>'}`;
+ if(forced)sh().dataset.forced=1;else delete sh().dataset.forced;sh().classList.add('open')}
+async function saveBaby(id){const name=$('#bn').value.trim(),birth=$('#bd').value;if(!name)return toast('Indiquez un prénom');
+ if(id){await api('PUT','/api/babies/'+id,{name,birth})}else{const r=await api('POST','/api/babies',{name,birth});B=r.id;try{localStorage.setItem('baby',r.id)}catch(e){}}
+ closeSheet();await load()}
+async function delBaby(id){if(confirm('Supprimer ce bébé ainsi que toutes ses tétées, biberons et pesées ? Cette action est définitive.')){await api('DELETE','/api/babies/'+id);closeSheet();B=null;load()}}
+
+const TABS=[['home','🏠','Accueil'],['history','📖','Historique'],['rhythm','📊','Rythme'],['weight','⚖️','Poids']];
+function render(){
+ $('#tabs').innerHTML=TABS.map(([k,i,l])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';render();scrollTo(0,0)"><b>${i}</b>${l}</button>`).join('');
+ $('#app').innerHTML=header()+(baby()?{home,history,rhythm,weight}[tab]():'');
+ const sc=$('#sc');if(sc){sc.scrollLeft=Rt.scroll??sc.scrollWidth;sc.onscroll=()=>Rt.scroll=sc.scrollLeft}}
+load();
+setInterval(()=>{if(tab==='home'&&!sh().classList.contains('open')&&document.activeElement.tagName!=='INPUT')render()},60000);
+</script>
+</body>
+</html>
