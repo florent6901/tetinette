@@ -49,7 +49,7 @@ Elle tourne chez vous, dans un conteneur Docker. Vos données restent sur votre 
 Il vous faut simplement [Docker](https://docs.docker.com/get-docker/) avec le plugin Compose.
 
 ```bash
-git clone https://github.com/<votre-utilisateur>/tetinette.git
+git clone https://github.com/florent6901/tetinette.git
 cd tetinette
 docker compose up -d --build
 ```
