@@ -1,7 +1,10 @@
-import json, os, sqlite3, mimetypes
+import json, os, sqlite3, mimetypes, ssl, subprocess, ipaddress, sys
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 DB = os.environ.get("DB_PATH", "/data/bebe.db")
+HTTPS = os.environ.get("HTTPS", "false").strip().lower() in ("1", "true", "yes", "on")
+CERT = os.environ.get("TLS_CERT", "/data/certs/cert.pem")
+KEY = os.environ.get("TLS_KEY", "/data/certs/key.pem")
 STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 os.makedirs(os.path.dirname(DB), exist_ok=True)
 
@@ -19,6 +22,9 @@ with db() as c:
     for t in ("events", "weights"):
         if "baby_id" not in [r["name"] for r in c.execute(f"PRAGMA table_info({t})")]:
             c.execute(f"ALTER TABLE {t} ADD COLUMN baby_id INTEGER")
+    for col, typ in (("note", "TEXT"), ("level", "INTEGER")):
+        if col not in [r["name"] for r in c.execute("PRAGMA table_info(events)")]:
+            c.execute(f"ALTER TABLE events ADD COLUMN {col} {typ}")
     if any(c.execute(f"SELECT 1 FROM {t} WHERE baby_id IS NULL").fetchone() for t in ("events", "weights")):
         bid = c.execute("INSERT INTO babies(name) VALUES('Bébé')").lastrowid
         for t in ("events", "weights"):
@@ -59,8 +65,8 @@ class H(BaseHTTPRequestHandler):
         d = self.body()
         with db() as c:
             if self.path == "/api/events":
-                c.execute("INSERT INTO events(ts,kind,side,milk,ml,baby_id) VALUES(?,?,?,?,?,?)",
-                          (d["ts"], d["kind"], d.get("side"), d.get("milk"), d.get("ml"), d["baby_id"]))
+                c.execute("INSERT INTO events(ts,kind,side,milk,ml,baby_id,note,level) VALUES(?,?,?,?,?,?,?,?)",
+                          (d["ts"], d["kind"], d.get("side"), d.get("milk"), d.get("ml"), d["baby_id"], d.get("note"), d.get("level")))
             elif self.path == "/api/weights":
                 c.execute("INSERT INTO weights(day,grams,baby_id) VALUES(?,?,?)", (d["day"], int(d["grams"]), d["baby_id"]))
             elif self.path == "/api/babies":
@@ -72,11 +78,15 @@ class H(BaseHTTPRequestHandler):
 
     def do_PUT(self):
         parts = self.path.strip("/").split("/")
-        if parts[:2] != ["api", "babies"] or len(parts) != 3:
+        if len(parts) != 3 or parts[0] != "api" or parts[1] not in ("babies", "events"):
             return self.send(404, {})
-        d = self.body()
+        d, i = self.body(), int(parts[2])
         with db() as c:
-            c.execute("UPDATE babies SET name=?, birth=? WHERE id=?", (d["name"], d.get("birth") or None, int(parts[2])))
+            if parts[1] == "babies":
+                c.execute("UPDATE babies SET name=?, birth=? WHERE id=?", (d["name"], d.get("birth") or None, i))
+            else:
+                c.execute("UPDATE events SET ts=?, kind=?, side=?, milk=?, ml=?, note=?, level=? WHERE id=?",
+                          (d["ts"], d["kind"], d.get("side"), d.get("milk"), d.get("ml"), d.get("note"), d.get("level"), i))
         self.send(200, {"ok": True})
 
     def do_DELETE(self):
@@ -93,6 +103,49 @@ class H(BaseHTTPRequestHandler):
 
     def log_message(self, *a): pass
 
+def ensure_cert():
+    """Génère un certificat auto-signé si aucun certificat n'est fourni."""
+    if os.path.isfile(CERT) and os.path.isfile(KEY):
+        return
+    for f in (CERT, KEY):
+        d = os.path.dirname(f)
+        try:
+            os.makedirs(d, exist_ok=True)
+        except OSError:
+            pass
+        if not os.access(d, os.W_OK):
+            sys.exit(f"ERREUR : certificat introuvable ({f}) et le dossier {d} n'est pas modifiable (volume en lecture seule ?).\n"
+                     "- Soit placez-y vos fichiers (TLS_CERT et TLS_KEY).\n"
+                     "- Soit retirez TLS_CERT, TLS_KEY et le volume ./certs du compose pour utiliser un certificat auto-signé.")
+    names = [n.strip() for n in os.environ.get("TLS_HOSTNAMES", "localhost").split(",") if n.strip()]
+    def san(n):
+        try:
+            ipaddress.ip_address(n); return "IP:" + n
+        except ValueError:
+            return "DNS:" + n
+    try:
+        _gen(names, san)
+    except FileNotFoundError:
+        sys.exit("ERREUR : 'openssl' est introuvable dans l'image. L'image n'a pas été reconstruite avec le Dockerfile à jour.\n"
+                 "Lancez : docker compose build --no-cache && docker compose up -d\n"
+                 "(ou fournissez votre propre certificat avec TLS_CERT et TLS_KEY).")
+    except subprocess.CalledProcessError as e:
+        sys.exit("ERREUR : génération du certificat impossible : " + e.stderr.decode(errors="replace"))
+    print("Certificat auto-signé généré dans", os.path.dirname(CERT))
+
+def _gen(names, san):
+    subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "825",
+                    "-keyout", KEY, "-out", CERT, "-subj", "/CN=" + names[0],
+                    "-addext", "subjectAltName=" + ",".join(san(n) for n in names)],
+                   check=True, capture_output=True)
+
 if __name__ == "__main__":
-    print("Tétinette écoute sur le port 8086")
-    ThreadingHTTPServer(("0.0.0.0", 8086), H).serve_forever()
+    srv = ThreadingHTTPServer(("0.0.0.0", 8086), H)
+    if HTTPS:
+        ensure_cert()
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+        ctx.load_cert_chain(CERT, KEY)
+        srv.socket = ctx.wrap_socket(srv.socket, server_side=True)
+    print("Tétinette écoute sur le port 8086 en", "HTTPS" if HTTPS else "HTTP")
+    srv.serve_forever()

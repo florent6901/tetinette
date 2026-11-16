@@ -32,7 +32,7 @@ button{font:inherit;border:0;cursor:pointer;color:inherit}
 .feed{border-radius:24px;padding:20px 10px;font-weight:700;font-size:18px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .feed span{font-size:30px;font-family:Grandstander}
 .feed:active{transform:scale(.97)}
-.L{background:var(--sage);color:var(--sagedk)}.R{background:var(--pink);color:#7A3340}.B{background:var(--taupe);color:#fff}
+.L{background:var(--sage);color:var(--sagedk)}.R{background:var(--pink);color:#7A3340}.B{background:var(--taupe);color:#fff}.V{background:#fff;color:var(--ink)}
 .wide{grid-column:1/3;flex-direction:row;justify-content:center;gap:10px;padding:16px}
 .wide span{font-size:24px}
 .manual{width:100%;display:flex;align-items:center;gap:14px;text-align:left;background:var(--white);border-radius:22px;padding:14px 16px;margin-bottom:6px;box-shadow:0 4px 18px #8b777822}
@@ -74,8 +74,8 @@ nav button.on{background:var(--bg);color:var(--wine)}
 .wchart{border:2px solid #ffffff80;border-radius:24px;padding:10px 6px 6px;margin-bottom:12px}
 .wchart svg{width:100%;height:auto;display:block}
 .wchart .cap{text-align:center;font-weight:700;padding:4px 0 6px}
-input{font:inherit;width:100%;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:#fff;color:var(--ink)}
-input:focus,button:focus-visible{outline:3px solid var(--wine);outline-offset:2px}
+input,textarea{font:inherit;width:100%;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:#fff;color:var(--ink)}
+input:focus,textarea:focus,button:focus-visible{outline:3px solid var(--wine);outline-offset:2px}
 label{display:block;font-weight:700;margin:12px 0 6px;font-size:14px;color:var(--taupe)}
 .go{width:100%;margin-top:16px;padding:15px;border-radius:18px;background:var(--wine);color:#fff;font-weight:700;font-size:17px}
 .link{background:none;color:var(--taupe);text-decoration:underline;display:block;margin:10px auto 0;font-weight:600}
@@ -87,6 +87,11 @@ label{display:block;font-weight:700;margin:12px 0 6px;font-size:14px;color:var(-
 .welcome{text-align:center}.welcome img{width:130px;border-radius:30px;margin-bottom:8px}.welcome p{color:var(--taupe)}
 #toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:18px;display:none;gap:14px;align-items:center;z-index:9;white-space:nowrap}
 #toast button{background:none;color:var(--bg);text-decoration:underline;font-weight:700}
+.note{display:block;font-style:italic;color:var(--taupe);margin-top:2px;word-break:break-word}
+.lvs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lv{background:#e9dccb;border-radius:14px;padding:10px 6px;font-weight:700;display:flex;flex-direction:column;gap:2px;align-items:center;font-size:14px}
+.lv.on{outline:3px solid var(--wine);background:#fff}
+.lv i{font-style:normal;letter-spacing:2px;color:var(--wine);font-size:12px}.lv s{text-decoration:none;opacity:.25}
 .empty{color:var(--taupe);text-align:center;padding:16px 0}
 @media (prefers-reduced-motion:no-preference){.feed,.go{transition:transform .12s}}
 </style>
@@ -108,6 +113,8 @@ const today=()=>ymd(new Date());
 const dayKey=ts=>ts.slice(0,10), hhmm=ts=>ts.slice(11,16).replace(':','h');
 const fmtD=k=>{const d=new Date(k+'T12:00');return`${d.getDate()} ${MOIS[d.getMonth()]}`};
 const fmtDY=k=>`${fmtD(k)} ${k.slice(0,4)}`;
+const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LV=['','Une régurgitation','Petite quantité','Quantité moyenne','Grande quantité'];
 const sideName=s=>s==='L'?'Sein gauche':'Sein droit';
 function dayLabel(k){if(k===today())return"Aujourd’hui";if(k===addD(today(),-1))return"Hier";
  return new Date(k+'T12:00').toLocaleDateString('fr-FR',{weekday:'long'})+' '+fmtD(k)}
@@ -133,33 +140,32 @@ async function load(){S=await (await fetch('/api/data')).json();
 async function api(m,u,b){const r=await fetch(u,{method:m,headers:{'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined});return r.json()}
 function pick(id){B=id;try{localStorage.setItem('baby',id)}catch(e){}Rt.sel=null;Rt.scroll=null;Wt.sel=null;render()}
 
-const IC={L:'G',R:'D',B:'🍼'};
-const kindOf=e=>e.kind==='bottle'?'B':e.side;
+const IC={L:'G',R:'D',B:'🍼',V:'💧'};
+const kindOf=e=>e.kind==='bottle'?'B':e.kind==='vomit'?'V':e.side;
 function evRow(e){const k=kindOf(e);
- const title=e.kind==='bottle'?`Biberon · ${e.ml} ml`:sideName(e.side);
+ const title=e.kind==='bottle'?`Biberon · ${e.ml} ml`:e.kind==='vomit'?`Vomi · ${LV[e.level].toLowerCase()}`:sideName(e.side);
  const sub=e.kind==='bottle'?(e.milk==='maternel'?'Lait maternel':'Lait artificiel'):'';
- return`<div class="row"><div class="dot ${k}">${IC[k]}</div><div class="t"><b>${title}</b><small>${hhmm(e.ts)}${sub?' · '+sub:''}</small></div><button class="x" aria-label="Supprimer" onclick="del(${e.id})">×</button></div>`}
+ return`<div class="row"><div class="dot ${k}">${IC[k]}</div><div class="t" role="button" tabindex="0" onclick="openEdit(${e.id})" style="cursor:pointer"><b>${title}</b><small>${hhmm(e.ts)}${sub?' · '+sub:''}</small>${e.note?`<span class="note">${E(e.note)}</span>`:''}</div><button class="x" aria-label="Supprimer" onclick="del(${e.id})">×</button></div>`}
 async function del(id){if(confirm('Supprimer cette entrée ?')){await api('DELETE','/api/events/'+id);load()}}
 async function delW(id){if(confirm('Supprimer cette pesée ?')){await api('DELETE','/api/weights/'+id);Wt.sel=null;load()}}
-function toast(msg,undoId){const t=$('#toast');t.innerHTML=`${msg}${undoId?'<button id="undo">Annuler</button>':''}`;t.style.display='flex';
+function toast(msg,undoId){const t=$('#toast');t.innerHTML=`${msg}${undoId?'<button id="undo">Annuler</button><button id="note">Ajouter une note</button>':''}`;t.style.display='flex';
+ if(undoId)$('#note').onclick=()=>{t.style.display='none';openEdit(undoId)};
  if(undoId)$('#undo').onclick=async()=>{await api('DELETE','/api/events/'+undoId);t.style.display='none';load()};
- clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',5000)}
-async function quick(side){await api('POST','/api/events',{ts:iso(new Date()),kind:'breast',side,baby_id:B});await load();
- toast(`${sideName(side)} enregistré`,Math.max(...ev().map(e=>e.id)))}
+ clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',6500)}
 
 function header(){const b=baby();
  return`<div class="top"><img src="/logo.png" alt=""><h1>Tétinette</h1>${b?`<button class="icon" aria-label="Modifier le profil" onclick="babySheet(${b.id})">✎</button>`:''}</div>
- <div class="chips">${S.babies.map(x=>`<button class="chip ${x.id===B?'on':''}" onclick="pick(${x.id})">${x.name}${x.birth?`<small>${ageStr(x.birth)}</small>`:''}</button>`).join('')}<button class="chip" onclick="babySheet(null)">+ Ajouter</button></div>`}
+ <div class="chips">${S.babies.map(x=>`<button class="chip ${x.id===B?'on':''}" onclick="pick(${x.id})">${E(x.name)}${x.birth?`<small>${ageStr(x.birth)}</small>`:''}</button>`).join('')}<button class="chip" onclick="babySheet(null)">+ Ajouter</button></div>`}
 
 function home(){
  const feeds=ev().filter(e=>e.kind==='breast'),last=feeds[0],td=today(),te=ev().filter(e=>dayKey(e.ts)===td);
- const ml=sum(te.filter(e=>e.kind==='bottle'),e=>e.ml),n=baby()?.name||'';
+ const ml=sum(te.filter(e=>e.kind==='bottle'),e=>e.ml),n=E(baby()?.name);
  let h='';
  if(last){const nx=last.side==='L'?'R':'L';
   h+=`<div class="card last"><small>Dernier sein donné à ${n}</small><div class="big">${sideName(last.side)}</div><small>${hhmm(last.ts)} · ${ago(last.ts)}</small><br><span class="next ${nx}">Prochain : ${sideName(nx).toLowerCase()}</span></div>`}
  else h+=`<div class="card empty">Aucune tétée pour ${n}. Touchez un bouton pour commencer.</div>`;
- h+=`<div class="btns"><button class="feed L" onclick="quick('L')"><span>G</span>Sein gauche</button><button class="feed R" onclick="quick('R')"><span>D</span>Sein droit</button>
- <button class="feed B wide" onclick="openSheet('B')"><span>🍼</span>Ajouter un biberon</button></div>
+ h+=`<div class="btns"><button class="feed L" onclick="openSheet('L')"><span>G</span>Sein gauche</button><button class="feed R" onclick="openSheet('R')"><span>D</span>Sein droit</button>
+ <button class="feed B" onclick="openSheet('B')"><span>🍼</span>Biberon</button><button class="feed V" onclick="openSheet('V')"><span>💧</span>Bébé a vomi</button></div>
  <button class="manual" onclick="openSheet('L')"><svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="23" fill="#A8BBA9"/><circle cx="21" cy="23" r="11" fill="none" stroke="#fff" stroke-width="3"/><path d="M21 16v7l5 3" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="36" cy="35" r="8" fill="#A5646B"/><path d="M36 31v8M32 35h8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
  <span><b>Ajouter manuellement une prise</b><small>Une tétée ou un biberon oublié, à la date et l’heure de votre choix</small></span></button>
  <div class="day">Aujourd’hui<small>${te.filter(e=>e.kind==='breast').length} tétées${ml?` · ${ml} ml biberon`:''}</small></div>
@@ -189,24 +195,25 @@ function buckets(mode){const t=today(),out=[];
   b.L=b.es.filter(e=>e.side==='L').length;b.R=b.es.filter(e=>e.side==='R').length;
   b.mat=sum(b.es.filter(e=>e.milk==='maternel'),e=>e.ml);b.art=sum(b.es.filter(e=>e.milk==='artificiel'),e=>e.ml)});
  return out}
-function summary(es,nd){const br=es.filter(e=>e.kind==='breast'),g=gaps(es);
+function summary(all,nd){const es=all.filter(e=>e.kind!=='vomit'),vo=all.filter(e=>e.kind==='vomit'),br=es.filter(e=>e.kind==='breast'),g=gaps(es);
+ const vl=vo.length?`<div class="soft" style="margin:-4px 4px 12px">💧 ${vo.length} vomi${vo.length>1?'s':''} (${[1,2,3,4].filter(l=>vo.some(v=>v.level===l)).map(l=>vo.filter(v=>v.level===l).length+' · '+LV[l].toLowerCase()).join(', ')})</div>`:'';
  const L=br.filter(e=>e.side==='L').length,R=br.length-L,mat=sum(es.filter(e=>e.milk==='maternel'),e=>e.ml),art=sum(es.filter(e=>e.milk==='artificiel'),e=>e.ml);
  const c=(v,l)=>`<div class="stat"><div class="big">${v}</div><small>${l}</small></div>`;
  return`<div class="stats">${c(br.length,`tétées (G ${L} · D ${R})`)}${c(mat+art+' ml',`biberons (mat. ${mat} · art. ${art})`)}${c(g.length?dur(avg(g)):'–','écart moyen entre prises')}
- ${nd>1?c((br.length/nd).toFixed(1),'tétées par jour')+c(((mat+art)/nd).toFixed(0)+' ml','biberon par jour')+c(g.length?dur(Math.max(...g)):'–','plus longue pause'):c(es.length,'prises au total')+c(g.length?dur(Math.max(...g)):'–','plus longue pause')+c(es.length?hhmm(es.reduce((a,e)=>e.ts>a.ts?e:a).ts):'–','dernière prise')}</div>`}
+ ${nd>1?c((br.length/nd).toFixed(1),'tétées par jour')+c(((mat+art)/nd).toFixed(0)+' ml','biberon par jour')+c(g.length?dur(Math.max(...g)):'–','plus longue pause'):c(es.length,'prises au total')+c(g.length?dur(Math.max(...g)):'–','plus longue pause')+c(es.length?hhmm(es.reduce((a,e)=>e.ts>a.ts?e:a).ts):'–','dernière prise')}</div>${vl}`}
 
 function rhythm(){
  const modes=[['day','Jour'],['days','Jours'],['weeks','Semaines'],['months','Mois']];
  let h=`<div class="seg">${modes.map(([k,l])=>`<button class="${Rt.mode===k?'on':''}" onclick="setMode('${k}')">${l}</button>`).join('')}</div>`;
  if(Rt.mode==='day'){
   const k=Rt.date,es=ev().filter(e=>dayKey(e.ts)===k).sort((a,b)=>a.ts<b.ts?-1:1);
-  const hrs=[...Array(24)].map((_,i)=>es.filter(e=>+e.ts.slice(11,13)===i));
+  const hrsA=[...Array(24)].map((_,i)=>es.filter(e=>+e.ts.slice(11,13)===i)),hrs=hrsA.map(x=>x.filter(e=>e.kind!=='vomit'));
   const max=Math.max(2,...hrs.map(x=>x.length));
   h+=`<div class="nav"><button aria-label="Jour précédent" onclick="Rt.date=addD(Rt.date,-1);Rt.sel=null;render()">‹</button><b>${dayLabel(k)}</b><button aria-label="Jour suivant" ${k>=today()?'disabled':''} onclick="Rt.date=addD(Rt.date,1);Rt.sel=null;render()">›</button></div>
   <div class="chart"><div class="bars" style="gap:2px;width:100%">${hrs.map((x,i)=>{const L=x.filter(e=>e.side==='L').length,R=x.filter(e=>e.side==='R').length,Bn=x.filter(e=>e.kind==='bottle').length;
    return`<button class="col ${Rt.sel===i?'on':''}" style="flex:1;width:auto;min-width:0" aria-label="${i} h : ${x.length} prises" onclick="Rt.sel=Rt.sel===${i}?null:${i};render()"><em style="font-size:11px">${x.length||''}</em>${stackHTML([[L,COL.L],[R,COL.R],[Bn,COL.art]],max,120)}<span>${i%3===0?i+'h':'·'}</span></button>`}).join('')}</div>
   <div class="legend"><span><b style="background:${COL.L}"></b>Sein G</span><span><b style="background:${COL.R}"></b>Sein D</span><span><b style="background:${COL.art}"></b>Biberon</span></div></div>`;
-  const sel=Rt.sel!==null?hrs[Rt.sel]:es;
+  const sel=Rt.sel!==null?hrsA[Rt.sel]:es;
   h+=Rt.sel!==null?`<div class="day">De ${Rt.sel} h à ${Rt.sel+1} h<small>touchez la barre pour revenir à la journée</small></div>`:`<div class="day">Résumé de la journée</div>${summary(es,1)}`;
   h+=`<div class="card">${sel.length?sel.map(evRow).join(''):'<div class="empty">Aucune prise sur cette période.</div>'}</div>`;
   return h}
@@ -242,7 +249,7 @@ function wchart(w,bb,age){
  return s+`</svg><div class="cap">${cur.g} g · ${fmtDY(cur.d)}${ageTxt}</div>`}
 function weight(){
  const w=wt(),bb=baby(),age=Wt.mode==='age'&&bb?.birth;
- let h=`<h2 class="day" style="font-size:24px">Poids de ${bb?.name||'bébé'}</h2><div class="seg"><button class="${!age?'on':''}" onclick="Wt.mode='date';render()">Par date</button><button class="${age?'on':''}" onclick="${bb?.birth?"Wt.mode='age';render()":`babySheet(${B})`}">Par âge (mois)</button></div>`;
+ let h=`<h2 class="day" style="font-size:24px">Poids de ${E(bb?.name||'bébé')}</h2><div class="seg"><button class="${!age?'on':''}" onclick="Wt.mode='date';render()">Par date</button><button class="${age?'on':''}" onclick="${bb?.birth?"Wt.mode='age';render()":`babySheet(${B})`}">Par âge (mois)</button></div>`;
  if(Wt.mode==='age'&&!bb?.birth)Wt.mode='date';
  h+=`<div class="wchart">${wchart(w,bb,age)}</div>
  <div class="card"><label style="margin-top:0">Date de la pesée</label><input type="date" id="wd" value="${today()}">
@@ -258,24 +265,34 @@ async function addW(){const day=$('#wd').value,g=$('#wg').value;if(!day||!g)retu
 const sh=()=>$('#sheet');
 function closeSheet(){sh().classList.remove('open')}
 sh().onclick=e=>{if(e.target.id==='sheet'&&!sh().dataset.forced)closeSheet()};
-function openSheet(k){sheetKind=k;drawSheet();delete sh().dataset.forced;sh().classList.add('open')}
-function drawSheet(){const keep=$('#sdt')?.value||iso(new Date());
- $('#sheetbody').innerHTML=`<h2>Ajouter une prise</h2><div class="soft">Pour ${baby()?.name||''}</div><label>Type</label>
- <div class="seg"><button class="${sheetKind==='L'?'on':''}" onclick="sheetKind='L';drawSheet()">Sein G</button><button class="${sheetKind==='R'?'on':''}" onclick="sheetKind='R';drawSheet()">Sein D</button><button class="${sheetKind==='B'?'on':''}" onclick="sheetKind='B';drawSheet()">Biberon</button></div>
- <label>Date et heure</label><input type="datetime-local" id="sdt" value="${keep}">
- ${sheetKind==='B'?`<label>Lait</label><div class="seg"><button id="mm" class="${milk==='maternel'?'on':''}" onclick="pickMilk('maternel')">Maternel</button><button id="ma" class="${milk==='artificiel'?'on':''}" onclick="pickMilk('artificiel')">Artificiel</button></div>
- <label>Quantité (ml)</label><input type="number" id="sml" inputmode="numeric" placeholder="ex. 90">`:''}
- <button class="go" onclick="saveSheet()">Enregistrer</button><button class="link" onclick="closeSheet()">Fermer</button>`}
-function pickMilk(m){milk=m;$('#mm').classList.toggle('on',m==='maternel');$('#ma').classList.toggle('on',m==='artificiel')}
-async function saveSheet(){const ts=$('#sdt').value;if(!ts)return;
- if(sheetKind==='B'){const ml=parseInt($('#sml').value);if(!ml)return toast('Indiquez la quantité en ml');
-  await api('POST','/api/events',{ts,kind:'bottle',milk,ml,baby_id:B})}
- else await api('POST','/api/events',{ts,kind:'breast',side:sheetKind,baby_id:B});
- closeSheet();load()}
+let F={},editId=null;
+function openSheet(k){editId=null;sheetKind=k;F={ts:iso(new Date()),ml:'',note:'',level:null};drawSheet();delete sh().dataset.forced;sh().classList.add('open')}
+function openEdit(id){const e=S.events.find(x=>x.id===id);if(!e)return;editId=id;
+ sheetKind=e.kind==='bottle'?'B':e.kind==='vomit'?'V':e.side;milk=e.milk||'maternel';
+ F={ts:e.ts,ml:e.ml??'',note:e.note||'',level:e.level};drawSheet();delete sh().dataset.forced;sh().classList.add('open')}
+function readF(){const g=i=>$('#'+i);if(g('sdt'))F.ts=g('sdt').value;if(g('sml'))F.ml=g('sml').value;if(g('snote'))F.note=g('snote').value}
+function setKind(k){readF();sheetKind=k;drawSheet()}
+function setLevel(l){readF();F.level=l;drawSheet()}
+function pickMilk(m){readF();milk=m;drawSheet()}
+function drawSheet(){const K=[['L','Sein G'],['R','Sein D'],['B','Biberon'],['V','Vomi']];
+ $('#sheetbody').innerHTML=`<h2>${editId?'Modifier la prise':'Ajouter une prise'}</h2><div class="soft">Pour ${E(baby()?.name)}</div><label>Type</label>
+ <div class="seg">${K.map(([k,l])=>`<button class="${sheetKind===k?'on':''}" onclick="setKind('${k}')">${l}</button>`).join('')}</div>
+ <label>Date et heure</label><input type="datetime-local" id="sdt" value="${F.ts}">
+ ${sheetKind==='B'?`<label>Lait</label><div class="seg"><button class="${milk==='maternel'?'on':''}" onclick="pickMilk('maternel')">Maternel</button><button class="${milk==='artificiel'?'on':''}" onclick="pickMilk('artificiel')">Artificiel</button></div>
+ <label>Quantité (ml)</label><input type="number" id="sml" inputmode="numeric" placeholder="ex. 90" value="${F.ml}">`:''}
+ ${sheetKind==='V'?`<label>Quantité vomie</label><div class="lvs">${[1,2,3,4].map(l=>`<button class="lv ${F.level===l?'on':''}" onclick="setLevel(${l})"><i>${'●'.repeat(l)}<s>${'●'.repeat(4-l)}</s></i>${LV[l]}</button>`).join('')}</div><div class="soft" style="font-size:13px;margin-top:8px">En cas de vomissements répétés, de fièvre ou si bébé semble mal, demandez conseil à un médecin.</div>`:''}
+ <label>Commentaire (facultatif)</label><textarea id="snote" rows="2" maxlength="300" placeholder="Ex. : tétée agitée, s’est endormi, hoquet…">${E(F.note)}</textarea>
+ <button class="go" onclick="saveSheet()">Enregistrer</button>${editId?'<button class="link danger" onclick="delFromSheet()">Supprimer cette prise</button>':''}<button class="link" onclick="closeSheet()">Fermer</button>`}
+async function saveSheet(){readF();if(!F.ts)return;const d={ts:F.ts,baby_id:B,note:F.note.trim()||null};
+ if(sheetKind==='B'){const ml=parseInt(F.ml);if(!ml)return toast('Indiquez la quantité en ml');Object.assign(d,{kind:'bottle',milk,ml,side:null,level:null})}
+ else if(sheetKind==='V'){if(!F.level)return toast('Choisissez la quantité vomie');Object.assign(d,{kind:'vomit',level:F.level,side:null,milk:null,ml:null})}
+ else Object.assign(d,{kind:'breast',side:sheetKind,milk:null,ml:null,level:null});
+ await api(editId?'PUT':'POST',editId?'/api/events/'+editId:'/api/events',d);closeSheet();load()}
+async function delFromSheet(){if(confirm('Supprimer cette prise ?')){await api('DELETE','/api/events/'+editId);closeSheet();load()}}
 
 function babySheet(id,forced){const b=S.babies.find(x=>x.id===id);
- $('#sheetbody').innerHTML=`${forced?'<div class="welcome"><img src="/logo.png" alt=""><h2>Bienvenue sur Tétinette</h2><p>Commençons par présenter votre bébé.</p></div>':`<h2>${b?'Profil de '+b.name:'Ajouter un bébé'}</h2>`}
- <label>Prénom</label><input id="bn" value="${b?.name||''}" placeholder="Prénom de bébé">
+ $('#sheetbody').innerHTML=`${forced?'<div class="welcome"><img src="/logo.png" alt=""><h2>Bienvenue sur Tétinette</h2><p>Commençons par présenter votre bébé.</p></div>':`<h2>${b?'Profil de '+E(b.name):'Ajouter un bébé'}</h2>`}
+ <label>Prénom</label><input id="bn" value="${E(b?.name)}" placeholder="Prénom de bébé">
  <label>Date de naissance</label><input type="date" id="bd" value="${b?.birth||''}">
  <div class="soft" style="font-size:13px;margin-top:6px">Elle permet de voir la courbe de poids par âge en mois.</div>
  <button class="go" onclick="saveBaby(${b?b.id:'null'})">Enregistrer</button>

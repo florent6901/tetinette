@@ -1,9 +1,19 @@
 services:
-  tetees:
+  tetinette:
     build: .
-    container_name: tetees
+    container_name: tetinette
     restart: unless-stopped
     ports:
       - "8086:8086"
+    environment:
+      # HTTPS : "true" pour chiffrer les échanges, "false" pour du HTTP simple
+      - HTTPS=false
+      # Noms ou adresses IP à inscrire dans le certificat auto-signé (séparés par des virgules)
+      - TLS_HOSTNAMES=localhost,192.168.1.50
+      # Pour utiliser votre propre certificat (ex. Let's Encrypt), décommentez ces 2 lignes
+      # et le volume ./certs plus bas :
+      # - TLS_CERT=/certs/fullchain.pem
+      # - TLS_KEY=/certs/privkey.pem
     volumes:
       - ./data:/data
+      # - ./certs:/certs:ro
